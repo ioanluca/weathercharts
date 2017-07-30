@@ -9,12 +9,12 @@ var monthNames = ['January', 'February', 'March', 'April',
     'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 
-var rowChartMonths = dc.rowChart('#row-chart-months');
-var rowChartDays = dc.rowChart('#row-chart-days');
-var pieChartSeasonRainfall = dc.pieChart('#pie-chart-seasonRainfall');
-var godChart = dc.lineChart('#god-chart');
+var tempMonthsRowChart = dc.rowChart('#row-chart-months');
+var rainWeekDaysRowChart = dc.rowChart('#row-chart-days');
+var rainSeasonPieChart = dc.pieChart('#pie-chart-seasonRainfall');
+var variousChart = dc.lineChart('#god-chart');
 var magnifierChart = dc.barChart('#magnifier');
-var pieChartCateg = dc.pieChart('#pie-chart-categ');
+var categPieChart = dc.pieChart('#pie-chart-categ');
 var fluctChart = dc.barChart('#fluct');
 var dataCount = dc.dataCount('.dc-data-count');
 var dataTable = dc.dataTable('#data-table');
@@ -37,6 +37,7 @@ d3.csv(dataSource, function (row) {
     function (data) {
         var ndx = crossfilter(data);
 
+        //use crossfilter to aggregate data (apparently was too much for my computer to use it all)
         var hourAsDateDimension = ndx.dimension(function (row) {
             var s = timeFormat(row.time.fullDate);
             var key = s.slice(0, s.length - 5);
@@ -80,13 +81,13 @@ d3.csv(dataSource, function (row) {
         var perDayWeekGroupStats = dayOfTheWeekDimension.group().reduce(godReduceAdd, godReduceRemove, godInit);
         var perMonthGroupStats = monthDimension.group().reduce(godReduceAdd, godReduceRemove, godInit);
         var perSeasonGroupStats = seasonDimension.group().reduce(godReduceAdd, godReduceRemove, godInit);
-        var godGroup = timeDimension.group().reduce(godReduceAdd, godReduceRemove, godInit);
+        var allStats = timeDimension.group().reduce(godReduceAdd, godReduceRemove, godInit);
 
         var temperatureDimension = ndx.dimension(function (d) {
             return Math.floor(d.surfaceTemperature);
         });
 
-        var countTempeHits = temperatureDimension.group();
+        var tempHitsGroup = temperatureDimension.group();
 
         var categDimension = ndx.dimension(function (d) {
             return d.rainfall > 4 ? "Rainy" : d.windSpeed > 3 ? "Windy" : "Sunny";
@@ -94,12 +95,13 @@ d3.csv(dataSource, function (row) {
 
         var categGroup = categDimension.group();
 
+        //fluctuational chart
         fluctChart
             .width(1100)
             .height(400)
             .centerBar(true)
             .dimension(temperatureDimension)
-            .group(countTempeHits)
+            .group(tempHitsGroup)
             .gap(3)
             .x(d3.scale.linear().domain([-5, 35]))
             .renderHorizontalGridLines(true)
@@ -108,7 +110,8 @@ d3.csv(dataSource, function (row) {
             return v + "°C";
         });
 
-        rowChartDays
+        //days - rainfall chart
+        rainWeekDaysRowChart
             .width(600)
             .height(400)
             .group(perDayWeekGroupStats)
@@ -121,7 +124,8 @@ d3.csv(dataSource, function (row) {
             return v + "mm";
         });
 
-        rowChartMonths
+        //months - temp chart
+        tempMonthsRowChart
             .width(500)
             .height(400)
             .group(perMonthGroupStats)
@@ -134,7 +138,8 @@ d3.csv(dataSource, function (row) {
             return v + "°C";
         });
 
-        pieChartSeasonRainfall
+        //rainfall - season
+        rainSeasonPieChart
             .radius(150)
             .dimension(seasonDimension)
             .group(perSeasonGroupStats)
@@ -143,12 +148,13 @@ d3.csv(dataSource, function (row) {
                 return d.value.rainfall;
             });
 
-        pieChartCateg
+        //categgory chart
+        categPieChart
             .radius(150)
             .dimension(categDimension)
             .group(categGroup)
             .label(function (d) {
-                if (pieChartCateg.hasFilter() && !pieChartCateg.hasFilter(d.key)) {
+                if (categPieChart.hasFilter() && !categPieChart.hasFilter(d.key)) {
                     return d.key + '(0%)';
                 }
                 var label = d.key;
@@ -159,7 +165,8 @@ d3.csv(dataSource, function (row) {
             });
 
 
-        godChart
+        //line stack chart with various stats
+        variousChart
             .width(1300)
             .height(400)
             .mouseZoomable(true)
@@ -172,17 +179,17 @@ d3.csv(dataSource, function (row) {
             .xUnits(d3.time.months)
             .renderHorizontalGridLines(true)
             .legend(dc.legend().x(1160).y(15).itemHeight(10).gap(10))
-            .group(godGroup, 'Surface Temperature (°C)')
+            .group(allStats, 'Surface Temperature (°C)')
             .valueAccessor(function (d) {
                 return d.value.surfaceTemperature;
             })
-            .stack(godGroup, 'Wind Speed (m/s)', function (d) {
+            .stack(allStats, 'Wind Speed (m/s)', function (d) {
                 return d.value.windSpeed;
             })
-            .stack(godGroup, 'Relative Humidity (%)', function (d) {
+            .stack(allStats, 'Relative Humidity (%)', function (d) {
                 return d.value.relativeHumidity / 2;
             })
-            .stack(godGroup, 'Atmospheric pressure (mbar)', function (d) {
+            .stack(allStats, 'Atmospheric pressure (mbar)', function (d) {
                 return d.value.atmPressure / 20;
             });
 
@@ -190,7 +197,7 @@ d3.csv(dataSource, function (row) {
             .width(1300)
             .height(70)
             .dimension(timeDimension)
-            .group(godGroup)
+            .group(allStats)
             .valueAccessor(function (d) {
                 return d.value.atmPressure;
             })
@@ -248,7 +255,7 @@ d3.csv(dataSource, function (row) {
                 }
             ])
             .sortBy(function (d) {
-               return d.time.fullDate;
+                return d.time.fullDate;
             });
 
 
@@ -274,7 +281,7 @@ function getTimeObject(date) {
 }
 
 
-//god reduction over a period of time
+//convenience methods for reduction
 function godReduceAdd(p, v) {
     ++p.count;
     p.rainfall += v.rainfall;
@@ -303,6 +310,7 @@ function godReduceRemove(p, v) {
     p.surfaceTemperatureSum -= v.surfaceTemperature;
     p.relativeHumiditySum -= v.relativeHumidity;
 
+    //avoid division by 0
     if (p.count === 0) {
         p.atmPressure = p.windSpeed = p.windDirection = p.surfaceTemperature = p.relativeHumidity = 0;
         return p;

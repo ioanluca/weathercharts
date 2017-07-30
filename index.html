@@ -8,12 +8,13 @@
     <script type="text/javascript" src="/node_modules/d3/d3.js"></script>
     <script type="text/javascript" src="/node_modules/crossfilter2/crossfilter.min.js"></script>
     <script type="text/javascript" src="/node_modules/dc/dc.js"></script>
+
     <title>Weather charts</title>
     <style>
         #magnifier g.y {
             display: none;
         }
-        
+
         .stayFixed {
             position: fixed;
             top: 30%;
@@ -25,7 +26,7 @@
         }
 
         .row {
-            margin:4%;
+            margin: 4%;
         }
 
         #magnifier, #pie-chart-categ, #pie-chart-seasonRainfall, #god-chart, #fluct,
@@ -57,7 +58,9 @@
     <span class='filter-count'></span>
     selected out of <span class='total-count'></span> records.
 </div>
-<button type="button" id="resetorul" onclick="javascript:dc.filterAll(); dc.renderAll();" class="btn btn-success">Reset all the filters</button>
+<button type="button" id="resetorul" onclick="javascript:dc.filterAll(); dc.renderAll();" class="btn btn-success">Reset
+    all the filters
+</button>
 <div class="row">
     <h2>A little tool to help traveling entusiasts plan their trips.</h2>
 </div>
@@ -106,8 +109,10 @@
 <hr>
 
 
-<div class="row"><div id='data-table'>
-</div></div>
+<div class="row">
+    <div id='data-table'>
+    </div>
+</div>
 
 <div class="clearfix"></div>
 
