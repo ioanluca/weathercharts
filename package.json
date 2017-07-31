@@ -1,0 +1,24 @@
+{
+  "name": "weather-test",
+  "version": "1.0.0",
+  "description": "generate dc.js diagrams based on some weather data",
+  "main": "charts.js",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "dc": "^2.1.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ioanluca/weathercharts.git"
+  },
+  "author": "Ioan Luca",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ioanluca/weathercharts/issues"
+  },
+  "homepage": "https://github.com/ioanluca/weathercharts#readme"
+}
